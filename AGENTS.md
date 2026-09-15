@@ -20,7 +20,7 @@ busca-tunido/
 
 ---
 
-## 2. Token-Efficient Parallel Agent Architecture (Bun Lesson)
+## 2. Token-Efficient Parallel Agent Architecture
 
 To prevent token waste, context pollution, and compilation conflicts across concurrent agents, development follows strict role segregation:
 
@@ -55,12 +55,15 @@ To prevent token waste, context pollution, and compilation conflicts across conc
 ```
 
 ### Critical Worker Rules:
+
 1. **No Slow Commands**: Workers MUST NOT execute `pnpm build`, `tsc`, `nest build`, `biome check`, or `git stash`. These commands pollute the context window with thousands of terminal tokens.
 2. **Pure Implementation**: Workers focus exclusively on writing strictly-typed code for their designated files.
 3. **Targeted Staging**: Workers only run `git add <file1> <file2>`, followed by a single-line conventional commit.
 
 ### Orchestrator / Integrator Quality Gate:
+
 The Orchestrator runs all checks centrally on the merged integration branch in one pass:
+
 1. `pnpm run check`: Global Biome formatting and auto-fixing in milliseconds.
 2. `pnpm exec tsc --noEmit` / `nest build`: Static type verification.
 3. `pnpm run review`: Verification exit-code check.
@@ -88,4 +91,3 @@ CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap
 3. **Strict Typing**: Standard typing notations are mandatory in both TypeScript and Python. `any` is forbidden.
 4. **Conventional Commits**: Commit messages must be concise, single-line only (e.g., `feat(auth): add student domain validation`).
 5. **Brand Name**: Always format as `BuscaTuNido` (PascalCase, single word).
-
