@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Environments
+.env
+.venv/
+env/
+venv/
+
+# CrewAI & cache
+.crewai/
+*.db
+chroma/
+
+# Worktrees
+trees/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
