@@ -56,5 +56,21 @@ git submodule update --init --recursive
 - **CrewAI Orchestrator**:
   ```bash
   cd orchestrator
-  uv run orchestrator
+  uv run python main.py verify --target both
   ```
+
+### Parallel Worktree Management (Worktrunk)
+
+Parallel agent workspaces are managed using [Worktrunk](https://worktrunk.dev) (`wt`):
+
+```bash
+# Create worktree and branch for a worker
+wt -C web switch --create feat/task-name
+
+# List active worktrees and status
+wt -C web list
+
+# Remove worktree and delete branch after integration
+wt -C web remove feat/task-name -y -D
+```
+

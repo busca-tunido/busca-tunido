@@ -7,6 +7,7 @@ if src_dir not in sys.path:
 
 import click
 from orchestrator.tools.verification_tools import RunQualityGateTool
+from orchestrator.tools.git_worktree_tools import ListWorktreesTool
 from orchestrator.crew import BuscaTunidoCrew
 
 @click.group()
@@ -24,6 +25,12 @@ def verify(target: str) -> None:
     tool = RunQualityGateTool()
     report = tool.run(target=target)
     click.echo(report)
+
+@cli.command()
+@click.option("--repo", type=click.Choice(["web", "api"]), default="web", help="Target repository")
+def worktrees(repo: str) -> None:
+    tool = ListWorktreesTool()
+    click.echo(tool.run(repo=repo))
 
 @cli.command()
 @click.option("--requirement", "-r", required=True, help="Feature or bug requirement to plan")

@@ -68,10 +68,24 @@ The Orchestrator runs all checks centrally on the merged integration branch in o
 
 ---
 
-## 3. General Development Constraints
+## 3. Worktree Management with Worktrunk (`wt`)
+
+All parallel worktrees are managed using **Worktrunk** (`wt` CLI):
+
+- **Create**: `wt -C <web|api> switch --create <branch-name>`
+- **Inspect**: `wt -C <web|api> list`
+- **Integrate / Merge**: `wt -C <web|api> merge <branch-name>`
+- **Teardown**: `wt -C <web|api> remove <branch-name> -y -D`
+
+CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation and cleanup.
+
+---
+
+## 4. General Development Constraints
 
 1. **No Code Comments**: Do not write comments inside code unless explicitly requested by the user. Use descriptive naming and explicit types instead.
 2. **No Direct Config Edits**: Never modify `package.json`, `pnpm-lock.yaml`, or `pyproject.toml` manually to add dependencies. Use `pnpm add <pkg>` or `uv add <pkg>`.
 3. **Strict Typing**: Standard typing notations are mandatory in both TypeScript and Python. `any` is forbidden.
 4. **Conventional Commits**: Commit messages must be concise, single-line only (e.g., `feat(auth): add student domain validation`).
 5. **Brand Name**: Always format as `BuscaTuNido` (PascalCase, single word).
+

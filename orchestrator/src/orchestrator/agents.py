@@ -4,6 +4,7 @@ from .tools import (
     CreateWorktreeTool,
     MergeWorktreeTool,
     RemoveWorktreeTool,
+    ListWorktreesTool,
     AgyWorkerTool,
     RunQualityGateTool,
 )
@@ -11,12 +12,12 @@ from .tools import (
 def create_lead_orchestrator(llm: Any = None) -> Agent:
     return Agent(
         role="Lead Architecture & Wave Planner",
-        goal="Decompose system requirements into parallel waves with disjoint file sets and manage git worktrees.",
+        goal="Decompose system requirements into parallel waves with disjoint file sets and manage worktrunk (wt) worktrees.",
         backstory=(
             "Principal Software Architect specialized in monorepo topology, spec-driven engineering, "
-            "and multi-agent worktree isolation without file collisions."
+            "and multi-agent worktrunk isolation without file collisions."
         ),
-        tools=[CreateWorktreeTool(), RemoveWorktreeTool()],
+        tools=[CreateWorktreeTool(), ListWorktreesTool(), RemoveWorktreeTool()],
         verbose=True,
         llm=llm,
     )
@@ -43,7 +44,7 @@ def create_quality_integrator(llm: Any = None) -> Agent:
             "Staff Quality & Systems Engineer acting as the final gatekeeper. "
             "Performs branch merges and runs Biome autofix, TypeScript checks, and test suites in a single pass."
         ),
-        tools=[MergeWorktreeTool(), RemoveWorktreeTool(), RunQualityGateTool()],
+        tools=[MergeWorktreeTool(), RemoveWorktreeTool(), ListWorktreesTool(), RunQualityGateTool()],
         verbose=True,
         llm=llm,
     )
