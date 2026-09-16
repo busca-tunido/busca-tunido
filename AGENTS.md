@@ -14,6 +14,7 @@ busca-tunido/
 ├── web/                                  # Next.js frontend (submodule)
 ├── api/                                  # NestJS backend (submodule)
 ├── orchestrator/                         # CrewAI multi-agent orchestrator (Python + uv)
+├── justfile                              # Root task runner (just)
 ├── README.md                             # Minimal project overview
 └── AGENTS.md                             # Monorepo agent rules and guidelines
 ```
@@ -69,6 +70,23 @@ The Orchestrator runs all checks centrally on the merged integration branch in o
 3. `pnpm run review`: Verification exit-code check.
 4. `pnpm vitest run`: Unit tests.
 
+### Worker Dispatch Specification (`agy` CLI):
+
+The Orchestrator dispatches worker agents using the Antigravity CLI (`agy`) with strict invocation parameters:
+
+1. **Workspace Root Anchoring**: Must pass `--add-dir <worktree_path>` so that file creation and edits target the isolated worktree directory instead of default global scratch paths.
+2. **Reliable Model Selection**: Explicitly invoke `--model gemini-3.7-flash-high` for rapid response times and consistent availability.
+3. **Execution Flags**: Use `-p <prompt> --mode accept-edits --dangerously-skip-permissions`.
+
+### Orchestrator Pipeline Commands (`just`):
+
+All orchestration routines are driven from the repository root via `just`:
+
+- `just waves`: Inspect defined waves, assigned roles, and target file boundaries.
+- `just run-wave <N>`: Provision worktrees, dispatch workers, merge, and verify a single wave.
+- `just run-waves [start] [end]`: Execute a range of waves sequentially with automatic halt on quality gate failure.
+- `just verify [target]`: Run the centralized quality gate (`web`, `api`, or `both`) on-demand.
+
 ---
 
 ## 3. Worktree Management with Worktrunk (`wt`)
@@ -78,7 +96,7 @@ All parallel worktrees are managed using **Worktrunk** (`wt` CLI):
 - **Create**: `wt -C <web|api> switch --create <branch-name>`
 - **Inspect**: `wt -C <web|api> list`
 - **Integrate / Merge**: `wt -C <web|api> merge <branch-name>`
-- **Teardown**: `wt -C <web|api> remove <branch-name> -y -D`
+- **Teardown**: `wt -C <web|api> remove --force <branch-name> -D`
 
 CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation and cleanup.
 
