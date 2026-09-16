@@ -53,7 +53,7 @@ def run_wave(wave_number: int, dry_run: bool) -> None:
 
 @cli.command(name="run-waves")
 @click.option("--start", type=int, default=1, help="Starting wave number")
-@click.option("--end", type=int, default=2, help="Ending wave number (inclusive)")
+@click.option("--end", type=int, default=5, help="Ending wave number (inclusive)")
 @click.option("--dry-run", is_flag=True, help="Preview wave plan without modifying repositories")
 def run_waves(start: int, end: int, dry_run: bool) -> None:
     runner = WaveRunner()

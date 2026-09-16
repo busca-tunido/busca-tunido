@@ -23,7 +23,7 @@ class CreateWorktreeTool(BaseTool):
         repo_dir = base_dir / repo
 
         wt_bin = get_wt_bin()
-        subprocess.run([wt_bin, "-C", str(repo_dir), "remove", branch_name, "-y", "-D"], capture_output=True, text=True)
+        subprocess.run([wt_bin, "-C", str(repo_dir), "remove", "--force", branch_name, "-D"], capture_output=True, text=True)
         cmd = [wt_bin, "-C", str(repo_dir), "switch", "--create", branch_name]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
@@ -81,7 +81,7 @@ class RemoveWorktreeTool(BaseTool):
         repo_dir = base_dir / repo
 
         wt_bin = get_wt_bin()
-        cmd = [wt_bin, "-C", str(repo_dir), "remove", branch_name, "-y", "-D"]
+        cmd = [wt_bin, "-C", str(repo_dir), "remove", "--force", branch_name, "-D"]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return f"Failed to remove worktree {branch_name} with wt: {res.stderr.strip() or res.stdout.strip()}"

@@ -43,6 +43,10 @@ class AgyWorkerTool(BaseTool):
         agy_bin = shutil.which("agy.exe") or shutil.which("agy") or "agy.exe"
         cmd = [
             agy_bin,
+            "--model",
+            "gemini-3.7-flash-high",
+            "--add-dir",
+            str(resolved_path),
             "-p",
             lean_prompt,
             "--mode",

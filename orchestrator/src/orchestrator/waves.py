@@ -163,6 +163,20 @@ WAVES: dict[int, WaveSpec] = {
             ),
         ],
     ),
+    5: WaveSpec(
+        wave_number=5,
+        description="Compuerta Centralizada Avanzada de Calidad Frontend y Backend",
+        tasks=[
+            TaskSpec(
+                task_id="WEB-046",
+                repo="web",
+                branch_name="chore/046-advanced-quality-gate",
+                task_file="tasks/046_advanced-frontend-quality-gate.md",
+                target_files=[],
+                commit_message="chore(quality): advanced frontend and backend quality gate verification",
+            ),
+        ],
+    ),
 }
 
 import concurrent.futures
@@ -212,6 +226,8 @@ class WaveRunner:
         active_worktrees: list[tuple[TaskSpec, Path]] = []
 
         for task in wave.tasks:
+            if not task.target_files:
+                continue
             logs.append(f"\n[1/3] Provisionando worktree para {task.task_id} ({task.branch_name})...")
             create_msg = self.create_tool.run(repo=task.repo, branch_name=task.branch_name)
             logs.append(create_msg)
@@ -219,47 +235,48 @@ class WaveRunner:
             wt_path = self.resolve_worktree_path(task.repo, task.branch_name)
             active_worktrees.append((task, wt_path))
 
-        logs.append(f"\n[2/3] Despachando {len(active_worktrees)} Agy Workers en paralelo...")
+        if active_worktrees:
+            logs.append(f"\n[2/3] Despachando {len(active_worktrees)} Agy Workers en paralelo...")
 
-        def _execute_worker(task_spec: TaskSpec, target_path: Path) -> tuple[TaskSpec, str]:
-            task_file_path = self.base_dir / task_spec.repo / task_spec.task_file
-            if task_file_path.exists():
-                task_instructions = task_file_path.read_text(encoding="utf-8")
-            else:
-                task_instructions = f"Implement changes for {task_spec.task_id}. Target files: {task_spec.target_files}"
+            def _execute_worker(task_spec: TaskSpec, target_path: Path) -> tuple[TaskSpec, str]:
+                task_file_path = self.base_dir / task_spec.repo / task_spec.task_file
+                if task_file_path.exists():
+                    task_instructions = task_file_path.read_text(encoding="utf-8")
+                else:
+                    task_instructions = f"Implement changes for {task_spec.task_id}. Target files: {task_spec.target_files}"
 
-            res = self.worker_tool.run(
-                worktree_path=str(target_path),
-                task_instructions=task_instructions,
-                target_files=task_spec.target_files,
-                commit_message=task_spec.commit_message,
-            )
-            return task_spec, res
+                res = self.worker_tool.run(
+                    worktree_path=str(target_path),
+                    task_instructions=task_instructions,
+                    target_files=task_spec.target_files,
+                    commit_message=task_spec.commit_message,
+                )
+                return task_spec, res
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(active_worktrees))) as executor:
-            future_to_task = {
-                executor.submit(_execute_worker, t, p): t for t, p in active_worktrees
-            }
-            for future in concurrent.futures.as_completed(future_to_task):
-                task_spec, worker_output = future.result()
-                logs.append(f"\n--- Worker completado para {task_spec.task_id} ({task_spec.branch_name}) ---\n{worker_output}")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(active_worktrees))) as executor:
+                future_to_task = {
+                    executor.submit(_execute_worker, t, p): t for t, p in active_worktrees
+                }
+                for future in concurrent.futures.as_completed(future_to_task):
+                    task_spec, worker_output = future.result()
+                    logs.append(f"\n--- Worker completado para {task_spec.task_id} ({task_spec.branch_name}) ---\n{worker_output}")
 
-        logs.append("\n[3/3] Integrando ramas y limpiando worktrees...")
-        for task, wt_path in active_worktrees:
-            st_res = subprocess.run(
-                ["git", "-C", str(wt_path), "status", "--porcelain"],
-                capture_output=True,
-                text=True,
-            )
-            if st_res.returncode == 0 and st_res.stdout.strip():
-                subprocess.run(["git", "-C", str(wt_path), "add", "-A"])
-                subprocess.run(["git", "-C", str(wt_path), "commit", "-m", task.commit_message])
+            logs.append("\n[3/3] Integrando ramas y limpiando worktrees...")
+            for task, wt_path in active_worktrees:
+                st_res = subprocess.run(
+                    ["git", "-C", str(wt_path), "status", "--porcelain"],
+                    capture_output=True,
+                    text=True,
+                )
+                if st_res.returncode == 0 and st_res.stdout.strip():
+                    subprocess.run(["git", "-C", str(wt_path), "add", "-A"])
+                    subprocess.run(["git", "-C", str(wt_path), "commit", "-m", task.commit_message])
 
-            merge_msg = self.merge_tool.run(repo=task.repo, branch_name=task.branch_name)
-            logs.append(merge_msg)
+                merge_msg = self.merge_tool.run(repo=task.repo, branch_name=task.branch_name)
+                logs.append(merge_msg)
 
-            remove_msg = self.remove_tool.run(repo=task.repo, branch_name=task.branch_name)
-            logs.append(remove_msg)
+                remove_msg = self.remove_tool.run(repo=task.repo, branch_name=task.branch_name)
+                logs.append(remove_msg)
 
         logs.append("\n=== EJECUTANDO COMPUERTA CENTRALIZADA DE CALIDAD ===")
         gate_report = self.gate_tool.run(target="both")
@@ -267,6 +284,7 @@ class WaveRunner:
 
         if "FAILED" not in gate_report:
             logs.append("\n[Archivando especificaciones de tareas completadas]")
+            affected_repos: set[str] = set()
             for task in wave.tasks:
                 src_task = self.base_dir / task.repo / task.task_file
                 dest_task = self.base_dir / task.repo / "tasks" / "completed" / src_task.name
@@ -274,5 +292,14 @@ class WaveRunner:
                     dest_task.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(src_task), str(dest_task))
                     logs.append(f"  - Archivada {task.task_id} -> {dest_task.name}")
+                    affected_repos.add(task.repo)
+
+            for repo in affected_repos:
+                repo_path = self.base_dir / repo
+                subprocess.run(["git", "-C", str(repo_path), "add", "tasks/"])
+                subprocess.run(
+                    ["git", "-C", str(repo_path), "commit", "-m", f"chore(tasks): archive completed wave {wave.wave_number} tasks"],
+                    capture_output=True,
+                )
 
         return "\n".join(logs)
