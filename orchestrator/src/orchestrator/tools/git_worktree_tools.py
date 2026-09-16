@@ -1,9 +1,13 @@
 import json
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Literal, Type
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
+
+def get_wt_bin() -> str:
+    return shutil.which("wt.exe") or shutil.which("wt") or "wt"
 
 class CreateWorktreeInput(BaseModel):
     repo: Literal["web", "api"] = Field(description="Target repository: 'web' or 'api'")
@@ -18,12 +22,13 @@ class CreateWorktreeTool(BaseTool):
         base_dir = Path(__file__).resolve().parents[4]
         repo_dir = base_dir / repo
 
-        cmd = ["wt", "-C", str(repo_dir), "switch", "--create", branch_name]
+        wt_bin = get_wt_bin()
+        cmd = [wt_bin, "-C", str(repo_dir), "switch", "--create", branch_name]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return f"Failed to create worktree with wt: {res.stderr.strip() or res.stdout.strip()}"
 
-        list_cmd = ["wt", "-C", str(repo_dir), "list", "--format", "json"]
+        list_cmd = [wt_bin, "-C", str(repo_dir), "list", "--format", "json"]
         list_res = subprocess.run(list_cmd, capture_output=True, text=True)
         worktree_path = ""
         if list_res.returncode == 0:
@@ -74,7 +79,8 @@ class RemoveWorktreeTool(BaseTool):
         base_dir = Path(__file__).resolve().parents[4]
         repo_dir = base_dir / repo
 
-        cmd = ["wt", "-C", str(repo_dir), "remove", branch_name, "-y", "-D"]
+        wt_bin = get_wt_bin()
+        cmd = [wt_bin, "-C", str(repo_dir), "remove", branch_name, "-y", "-D"]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return f"Failed to remove worktree {branch_name} with wt: {res.stderr.strip() or res.stdout.strip()}"
@@ -93,7 +99,8 @@ class ListWorktreesTool(BaseTool):
         base_dir = Path(__file__).resolve().parents[4]
         repo_dir = base_dir / repo
 
-        cmd = ["wt", "-C", str(repo_dir), "list"]
+        wt_bin = get_wt_bin()
+        cmd = [wt_bin, "-C", str(repo_dir), "list"]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             return f"Failed to list worktrees with wt: {res.stderr.strip()}"

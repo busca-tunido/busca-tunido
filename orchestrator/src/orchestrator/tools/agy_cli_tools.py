@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 from pathlib import Path
 from typing import Type
@@ -39,8 +40,9 @@ class AgyWorkerTool(BaseTool):
             f"5. Once finished, stage only your target files using 'git add' and commit with: '{commit_message}'. Then exit."
         )
 
+        agy_bin = shutil.which("agy.exe") or shutil.which("agy") or "agy.exe"
         cmd = [
-            "agy.exe",
+            agy_bin,
             "-p",
             lean_prompt,
             "--mode",

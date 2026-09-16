@@ -11,21 +11,31 @@ class BuscaTunidoCrew:
         self.integrator = create_quality_integrator(llm)
 
     def run_planning(self, requirement: str) -> str:
-        task = create_planning_task(self.orchestrator, requirement)
-        crew = Crew(
-            agents=[self.orchestrator],
-            tasks=[task],
-            process=Process.sequential,
-            verbose=True,
-        )
-        return str(crew.kickoff())
+        try:
+            task = create_planning_task(self.orchestrator, requirement)
+            crew = Crew(
+                agents=[self.orchestrator],
+                tasks=[task],
+                process=Process.sequential,
+                verbose=True,
+            )
+            return str(crew.kickoff())
+        except Exception as exc:
+            return (
+                f"Error during CrewAI planning: {exc}\n"
+                "Tip: CrewAI autonomous planning requires OPENAI_API_KEY. "
+                "For pre-planned DAG waves, use the deterministic 'run-wave <N>' command instead."
+            )
 
     def run_integration(self, repo: str, branches: list[str], worktrees: list[str]) -> str:
-        task = create_integration_task(self.integrator, repo, branches, worktrees)
-        crew = Crew(
-            agents=[self.integrator],
-            tasks=[task],
-            process=Process.sequential,
-            verbose=True,
-        )
-        return str(crew.kickoff())
+        try:
+            task = create_integration_task(self.integrator, repo, branches, worktrees)
+            crew = Crew(
+                agents=[self.integrator],
+                tasks=[task],
+                process=Process.sequential,
+                verbose=True,
+            )
+            return str(crew.kickoff())
+        except Exception as exc:
+            return f"Error during CrewAI integration: {exc}"
