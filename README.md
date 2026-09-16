@@ -51,6 +51,11 @@ All common tasks can be run directly from the root using [just](https://github.c
 # Install dependencies across all submodules
 just install
 
+# Builds & Tests
+just build                # Compile both web (Next.js) and api (NestJS) production bundles
+just test                 # Run Vitest test suites across web and api
+just seed                 # Seed local database cluster
+
 # Development servers
 just web-dev              # Start Next.js frontend (Turbopack)
 just api-db               # Start local PostgreSQL cluster daemon

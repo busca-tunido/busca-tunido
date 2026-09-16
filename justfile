@@ -8,6 +8,10 @@ install:
     pnpm -C web install
     pnpm -C api install
 
+build:
+    pnpm -C api run build
+    pnpm -C web run build
+
 web-dev:
     pnpm -C web dev
 
@@ -16,6 +20,13 @@ api-dev:
 
 api-db:
     pnpm -C api run db:start
+
+seed:
+    pnpm -C api run db:seed
+
+test:
+    pnpm -C api run test
+    pnpm -C web run test
 
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
