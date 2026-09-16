@@ -51,6 +51,25 @@ def run_wave(wave_number: int, dry_run: bool) -> None:
     result = runner.run_wave(wave_number=wave_number, dry_run=dry_run)
     click.echo(result)
 
+@cli.command(name="run-waves")
+@click.option("--start", type=int, default=1, help="Starting wave number")
+@click.option("--end", type=int, default=2, help="Ending wave number (inclusive)")
+@click.option("--dry-run", is_flag=True, help="Preview wave plan without modifying repositories")
+def run_waves(start: int, end: int, dry_run: bool) -> None:
+    runner = WaveRunner()
+    for w in range(start, end + 1):
+        click.echo(f"\n=======================================================")
+        click.echo(f"  INICIANDO EJECUCIÓN: ONDA {w}")
+        click.echo(f"=======================================================")
+        result = runner.run_wave(wave_number=w, dry_run=dry_run)
+        click.echo(result)
+        if "FAILED" in result and not dry_run:
+            click.echo(f"\n[ALERTA] Deteniendo pipeline debido a errores en la compuerta de la Onda {w}")
+            sys.exit(1)
+    click.echo(f"\n=======================================================")
+    click.echo(f"  PIPELINE COMPLETADO CON ÉXITO HASTA LA ONDA {end}")
+    click.echo(f"=======================================================")
+
 @cli.command()
 @click.option("--requirement", "-r", required=True, help="Feature or bug requirement to plan")
 def plan(requirement: str) -> None:
