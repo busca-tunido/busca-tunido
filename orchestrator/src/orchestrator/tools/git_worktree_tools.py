@@ -23,6 +23,7 @@ class CreateWorktreeTool(BaseTool):
         repo_dir = base_dir / repo
 
         wt_bin = get_wt_bin()
+        subprocess.run([wt_bin, "-C", str(repo_dir), "remove", branch_name, "-y", "-D"], capture_output=True, text=True)
         cmd = [wt_bin, "-C", str(repo_dir), "switch", "--create", branch_name]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
