@@ -13,7 +13,14 @@ busca-tunido/
 ├── .gitmodules                           # Git submodule configuration
 ├── web/                                  # Next.js frontend (submodule)
 ├── api/                                  # NestJS backend (submodule)
-├── orchestrator/                         # CrewAI multi-agent orchestrator (Python + uv)
+├── orchestrator/                         # Canonical CrewAI multi-agent orchestrator (Python + uv)
+│   ├── config/                           # Declarative CrewAI agents and tasks YAML
+│   ├── skills/                           # Canonical filesystem-based Skill packages (SKILL.md)
+│   └── src/orchestrator/
+│       ├── llm/                          # Custom AgyLLM adapter (gemini-3.8-flash-high)
+│       ├── flow.py                       # BuscaTunidoFlow (CrewAI Flow with @start and @listen)
+│       ├── crew.py                       # BuscaTunidoCrew (@CrewBase, @agent, @task)
+│       └── tools/                        # Worktree, agy, discovery, and verification tools
 ├── justfile                              # Root task runner (just)
 ├── README.md                             # Minimal project overview
 └── AGENTS.md                             # Monorepo agent rules and guidelines
@@ -21,39 +28,39 @@ busca-tunido/
 
 ---
 
-## 2. Token-Efficient Parallel Agent Architecture
+## 2. Canonical CrewAI Architecture with Skills, Flows & AgyLLM
 
-To prevent token waste, context pollution, and compilation conflicts across concurrent agents, development follows strict role segregation:
+The orchestration engine follows the official, modern **CrewAI (`v1.15.22`)** architectural pattern:
 
-### Two-Tier Agent Model
+### Three-Tier Architectural Model
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                 CREWAI ORCHESTRATOR & INTEGRATOR ("Head of All")            │
-│  - Plans DAG waves with disjoint file sets.                                 │
-│  - Provisions isolated Git worktrees per task.                             │
-│  - Dispatches Worker agents via lean agy commands.                          │
-│  - Merges worker branches into base integration branches.                   │
-│  - Connects shared hubs (app.module.ts, layout.tsx).                        │
-│  - Runs centralized quality gates: Biome autofix, TSC, Tests, Builds.       │
-│  - Manages compiler diagnostics as a central error work queue.              │
+│                       BUSCATUNIDO CREWAI FLOW (@Flow)                       │
+│  - @start discover_specs: Scans web/tasks and api/tasks dynamically.       │
+│  - @listen run_crew_pipeline: Kicks off BuscaTunidoCrew in DAG waves.      │
+│  - @listen verify_quality_gate: Executes centralized quality checks.        │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
               ┌───────────────────────┴───────────────────────┐
               ▼                                               ▼
-┌───────────────────────────┐                   ┌───────────────────────────┐
-│     WORKER AGENT (A)      │                   │     WORKER AGENT (B)      │
-│ - Implements pure code    │                   │ - Implements pure code    │
-│   in exclusive files.     │                   │   in exclusive files.     │
-│ - Strict typing notations.│                   │ - Strict typing notations.│
-│ - FORBIDDEN: pnpm build,  │                   │ - FORBIDDEN: pnpm build,  │
-│   tsc, biome, git stash,  │                   │   tsc, biome, git stash,  │
-│   git reset, slow tools.  │                   │   git reset, slow tools.  │
-│ - git add <files>         │                   │ - git add <files>         │
-│ - Conventional commit (1L)│                   │ - Conventional commit (1L)│
-│ - Exits immediately.      │                   │ - Exits immediately.      │
-└───────────────────────────┘                   └───────────────────────────┘
+┌───────────────────────────────────────────┐   ┌───────────────────────────┐
+│     DECLARATIVE CREW (@CrewBase)          │   │  CUSTOM AgyLLM ADAPTER    │
+│ - config/agents.yaml                      │   │ - Inherits crewai.BaseLLM │
+│ - config/tasks.yaml                       │   │ - Model:                  │
+│ - skills/worktree-orchestration           │   │   gemini-3.8-flash-high   │
+│ - skills/token-efficient-coding           │   │ - Uses Antigravity CLI    │
+│ - skills/centralized-quality-gate         │   │ - Zero 3rd-party API keys │
+└───────────────────────────────────────────┘   └───────────────────────────┘
 ```
+
+### CrewAI Skills in the Filesystem:
+
+CrewAI agents are augmented with domain expertise via `SKILL.md` packages:
+
+1. `skills/worktree-orchestration/SKILL.md`: Guides `lead_orchestrator` on DAG wave planning, file set disjointness ($Files(A) \cap Files(B) = \emptyset$), and worktree isolation with `wt`.
+2. `skills/token-efficient-coding/SKILL.md`: Guides `code_worker` on token efficiency: strictly no heavy build/check tools, standard strict typing, no code comments, and targeted commits.
+3. `skills/centralized-quality-gate/SKILL.md`: Guides `quality_integrator` on merging branches and running centralized quality verification in a single pass.
 
 ### Critical Worker Rules:
 
@@ -75,17 +82,18 @@ The Orchestrator runs all checks centrally on the merged integration branch in o
 The Orchestrator dispatches worker agents using the Antigravity CLI (`agy`) with strict invocation parameters:
 
 1. **Workspace Root Anchoring**: Must pass `--add-dir <worktree_path>` so that file creation and edits target the isolated worktree directory instead of default global scratch paths.
-2. **Reliable Model Selection**: Explicitly invoke `--model gemini-3.7-flash-high` for rapid response times and consistent availability.
+2. **Reliable Model Selection**: Explicitly invoke `--model gemini-3.8-flash-high` for rapid response times and consistent availability.
 3. **Execution Flags**: Use `-p <prompt> --mode accept-edits --dangerously-skip-permissions`.
 
 ### Orchestrator Pipeline Commands (`just`):
 
 All orchestration routines are driven from the repository root via `just`:
 
-- `just waves`: Inspect defined waves, assigned roles, and target file boundaries.
-- `just run-wave <N>`: Provision worktrees, dispatch workers, merge, and verify a single wave.
-- `just run-waves [start] [end]`: Execute a range of waves sequentially with automatic halt on quality gate failure.
+- `just discover`: Dynamically discover pending task specifications and their active waves.
+- `just run-flow`: Execute the end-to-end canonical CrewAI Flow (`BuscaTunidoFlow`).
+- `just plan [requirement]`: Run autonomous wave planning and worktree allocation via `BuscaTunidoCrew`.
 - `just verify [target]`: Run the centralized quality gate (`web`, `api`, or `both`) on-demand.
+- `just worktrees [repo]`: List active worktrees in `web` or `api`.
 
 ---
 

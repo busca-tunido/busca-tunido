@@ -6,6 +6,7 @@ from .git_worktree_tools import (
 )
 from .agy_cli_tools import AgyWorkerTool
 from .verification_tools import RunQualityGateTool
+from .task_discovery_tools import DiscoverPendingTasksTool
 
 __all__ = [
     "CreateWorktreeTool",
@@ -14,4 +15,5 @@ __all__ = [
     "ListWorktreesTool",
     "AgyWorkerTool",
     "RunQualityGateTool",
+    "DiscoverPendingTasksTool",
 ]

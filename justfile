@@ -31,11 +31,14 @@ test:
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
 
-waves:
-    uv run --project orchestrator python orchestrator/main.py list-waves
+discover repo="both":
+    uv run --project orchestrator python orchestrator/main.py discover --repo {{repo}}
 
-run-wave wave:
-    uv run --project orchestrator python orchestrator/main.py run-wave {{wave}}
+run-flow:
+    uv run --project orchestrator python orchestrator/main.py run-flow
 
-run-waves start="1" end="5":
-    uv run --project orchestrator python orchestrator/main.py run-waves --start {{start}} --end {{end}}
+plan requirement="":
+    uv run --project orchestrator python orchestrator/main.py plan {{ if requirement != "" { "-r \"" + requirement + "\"" } else { "" } }}
+
+worktrees repo="web":
+    uv run --project orchestrator python orchestrator/main.py worktrees --repo {{repo}}

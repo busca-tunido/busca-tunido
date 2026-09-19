@@ -1,0 +1,31 @@
+plan_waves_task:
+  description: >
+    Analyze the pending task specifications discovered in {tasks_summary}.
+    1. Group the tasks into sequential waves where every parallel task operates on strictly disjoint target files.
+    2. Provision isolated git worktrees using worktrunk for each parallel task.
+    Return a structured execution plan with task IDs, target files, and worktree paths.
+  expected_output: >
+    Structured execution plan with worktree paths and assigned exclusive target files.
+  agent: lead_orchestrator
+
+execute_worker_task:
+  description: >
+    Execute code implementation for task {task_id} in worktree {worktree_path}.
+    Target Files (Exclusive): {target_files}
+    Instructions: {task_instructions}
+    Use agy worker to implement the code. Do not run build or lint tools.
+    Commit message: {commit_message}.
+  expected_output: >
+    Confirmation of code changes committed in the worktree.
+  agent: code_worker
+
+integrate_quality_gate_task:
+  description: >
+    Integrate completed branches {branches} into {repo}/main.
+    1. Merge each branch with worktrunk.
+    2. Run centralized quality gate for {repo}.
+    3. If checks pass, remove temporary worktrees {worktrees} and archive completed tasks.
+    4. If errors occur, summarize exact compiler diagnostics for review.
+  expected_output: >
+    Quality gate report and branch integration status.
+  agent: quality_integrator
