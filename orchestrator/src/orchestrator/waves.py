@@ -71,16 +71,6 @@ WAVES: dict[int, WaveSpec] = {
                 ],
                 commit_message="feat(seo): configure llms.txt, dynamic opengraph, not-found page and canonical metadata",
             ),
-            TaskSpec(
-                task_id="WEB-058",
-                repo="web",
-                branch_name="feat/058-price-histogram-slider",
-                task_file="tasks/price-histogram-slider-component.md",
-                target_files=[
-                    "src/components/search/price-histogram-range-slider.tsx",
-                ],
-                commit_message="feat(search): implement airbnb-style price histogram range slider component",
-            ),
         ],
     ),
     2: WaveSpec(
