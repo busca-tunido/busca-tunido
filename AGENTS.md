@@ -32,27 +32,13 @@ busca-tunido/
 
 The orchestration engine follows the official, modern **CrewAI (`v1.15.22`)** architectural pattern:
 
-### Three-Tier Architectural Model
+### Three-Tier Architectural Specification
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       BUSCATUNIDO CREWAI FLOW (@Flow)                       │
-│  - @start discover_specs: Scans web/tasks and api/tasks dynamically.       │
-│  - @listen run_crew_pipeline: Kicks off BuscaTunidoCrew in DAG waves.      │
-│  - @listen verify_quality_gate: Executes centralized quality checks.        │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-              ┌───────────────────────┴───────────────────────┐
-              ▼                                               ▼
-┌───────────────────────────────────────────┐   ┌───────────────────────────┐
-│     DECLARATIVE CREW (@CrewBase)          │   │  CUSTOM AgyLLM ADAPTER    │
-│ - config/agents.yaml                      │   │ - Inherits crewai.BaseLLM │
-│ - config/tasks.yaml                       │   │ - Model:                  │
-│ - skills/worktree-orchestration           │   │   gemini-3.8-flash-high   │
-│ - skills/token-efficient-coding           │   │ - Uses Antigravity CLI    │
-│ - skills/centralized-quality-gate         │   │ - Zero 3rd-party API keys │
-└───────────────────────────────────────────┘   └───────────────────────────┘
-```
+| Tier | Component | Implementation Pattern | Responsibilities & Invariants |
+| :--- | :--- | :--- | :--- |
+| **Tier 1: Flow Orchestration** | `BuscaTunidoFlow` | `crewai.flow.flow.Flow` | - `@start discover_specs`: Dynamically scans pending task specs in `web/tasks` and `api/tasks`<br>- `@listen(discover_specs) run_crew_pipeline`: Dispatches `BuscaTunidoCrew` across disjoint DAG waves<br>- `@listen(run_crew_pipeline) verify_quality_gate`: Triggers centralized quality gate checks |
+| **Tier 2: Declarative Multi-Agent Crew** | `BuscaTunidoCrew` | `@CrewBase` | - Agent Definitions: `config/agents.yaml`<br>- Task Specifications: `config/tasks.yaml`<br>- Specialized Skills: `skills/worktree-orchestration`, `skills/token-efficient-coding`, `skills/centralized-quality-gate` |
+| **Tier 3: Execution Runtime & LLM Adapter** | `AgyLLM` | `crewai.BaseLLM` subclass | - Model: `gemini-3.8-flash-high`<br>- Runtime: Antigravity CLI (`agy`) subagent execution<br>- Dependencies: Zero third-party API keys required |
 
 ### CrewAI Skills in the Filesystem:
 
