@@ -27,153 +27,227 @@ class WaveSpec:
 WAVES: dict[int, WaveSpec] = {
     1: WaveSpec(
         wave_number=1,
-        description="Infraestructura de Caché, Paginación Backend y Cliente en Paralelo",
+        description="Filtros y Permisos Backend con Cimientos SEO y Slider en Paralelo",
         tasks=[
             TaskSpec(
-                task_id="API-021",
+                task_id="API-026",
                 repo="api",
-                branch_name="feat/021-http-caching-headers",
-                task_file="tasks/021_http-caching-headers.md",
+                branch_name="feat/026-pension-filters-histogram",
+                task_file="tasks/pension-filters-histogram-backend.md",
                 target_files=[
-                    "src/common/interceptors/cache-control.interceptor.ts",
-                    "src/universities/universities.controller.ts",
+                    "src/pensions/dto/filter-pensions.dto.ts",
+                    "src/pensions/pensions.service.ts",
+                    "src/pensions/pensions.controller.ts",
                 ],
-                commit_message="perf(api): add http cache-control headers for static endpoints",
+                commit_message="feat(pensions): add advanced room filters and dynamic price histogram endpoint",
             ),
             TaskSpec(
-                task_id="API-022",
+                task_id="API-027",
                 repo="api",
-                branch_name="feat/022-reviews-pagination",
-                task_file="tasks/022_reviews-pagination-backend.md",
+                branch_name="feat/027-landlord-proposals-permissions",
+                task_file="tasks/landlord-proposals-permissions.md",
                 target_files=[
-                    "src/reviews/dto/filter-reviews.dto.ts",
-                    "src/reviews/reviews.service.ts",
-                    "src/reviews/reviews.controller.ts",
+                    "src/proposals/proposals.controller.ts",
+                    "src/proposals/proposals.service.ts",
                 ],
-                commit_message="feat(reviews): add server-side pagination and filters to pension reviews",
+                commit_message="feat(proposals): authorize pension owners to review community edit proposals",
             ),
             TaskSpec(
-                task_id="WEB-038",
+                task_id="WEB-053",
                 repo="web",
-                branch_name="feat/038-swr-cache-foundation",
-                task_file="tasks/038_shared-swr-cache-foundation.md",
+                branch_name="feat/053-seo-foundations-and-discovery",
+                task_file="tasks/seo-foundations-and-discovery.md",
                 target_files=[
-                    "src/lib/cache-store.ts",
-                    "src/hooks/use-cached-query.ts",
+                    "public/llms.txt",
+                    "public/llms-full.txt",
+                    "src/app/robots.ts",
+                    "src/app/not-found.tsx",
+                    "src/app/opengraph-image.tsx",
+                    "src/app/layout.tsx",
+                    "src/app/terms/page.tsx",
+                    "src/app/privacy/page.tsx",
+                    "src/app/faq/page.tsx",
+                    "src/app/contact/page.tsx",
                 ],
-                commit_message="feat(cache): implement shared in-memory swr cache store",
+                commit_message="feat(seo): configure llms.txt, dynamic opengraph, not-found page and canonical metadata",
             ),
             TaskSpec(
-                task_id="WEB-039",
+                task_id="WEB-058",
                 repo="web",
-                branch_name="feat/039-reviews-pagination-sync",
-                task_file="tasks/039_reviews-pagination-client-sync.md",
+                branch_name="feat/058-price-histogram-slider",
+                task_file="tasks/price-histogram-slider-component.md",
                 target_files=[
-                    "src/services/reviews.service.ts",
-                    "src/lib/api-client.ts",
+                    "src/components/search/price-histogram-range-slider.tsx",
                 ],
-                commit_message="feat(reviews): sync client data layer with server-side pagination",
+                commit_message="feat(search): implement airbnb-style price histogram range slider component",
             ),
         ],
     ),
     2: WaveSpec(
         wave_number=2,
-        description="Hooks Reactivos con Caché y Formularios con Reducers en Paralelo",
+        description="Listado Propietario Backend, Desbloqueo SSR, Búsqueda y Navegación Mobile en Paralelo",
         tasks=[
             TaskSpec(
-                task_id="WEB-040",
-                repo="web",
-                branch_name="feat/040-adopt-cache-in-hooks",
-                task_file="tasks/040_adopt-cache-in-hooks.md",
+                task_id="API-028",
+                repo="api",
+                branch_name="feat/028-landlord-pensions-mine",
+                task_file="tasks/landlord-pensions-mine.md",
                 target_files=[
-                    "src/hooks/use-pension-detail.ts",
-                    "src/hooks/use-pension-reviews.ts",
-                    "src/hooks/use-universities.ts",
+                    "src/pensions/pensions.controller.ts",
+                    "src/pensions/pensions.service.ts",
                 ],
-                commit_message="feat(hooks): integrate shared swr cache and pagination in data hooks",
+                commit_message="feat(pensions): add GET /pensions/mine endpoint for landlord property management",
             ),
             TaskSpec(
-                task_id="WEB-041",
+                task_id="WEB-055",
                 repo="web",
-                branch_name="feat/041-modal-reducers",
-                task_file="tasks/041_modal-reducers-state-machines.md",
+                branch_name="feat/055-public-ssr-catalog",
+                task_file="tasks/seo-public-ssr-catalog-viewsource.md",
                 target_files=[
-                    "src/reducers/suggest-edit-reducer.ts",
-                    "src/reducers/publish-review-reducer.ts",
-                    "src/components/pensions/suggest-edit-modal.tsx",
-                    "src/components/reviews/publish-review-modal.tsx",
+                    "src/components/shells/role-router.tsx",
+                    "src/lib/auth-context.tsx",
+                    "src/app/page.tsx",
                 ],
-                commit_message="refactor(modals): convert complex forms to useReducer state machines",
+                commit_message="feat(seo): enable public ssr catalog browsing and unblock view-source html",
+            ),
+            TaskSpec(
+                task_id="WEB-060",
+                repo="web",
+                branch_name="feat/060-search-nav-viewport-sync",
+                task_file="tasks/search-navigation-and-viewport-sync.md",
+                target_files=[
+                    "src/components/layout/desktop-navbar.tsx",
+                    "src/hooks/use-map-viewport-pensions.ts",
+                ],
+                commit_message="fix(search): route global navbar searches to explore and sync map viewport filters",
+            ),
+            TaskSpec(
+                task_id="WEB-049",
+                repo="web",
+                branch_name="feat/049-landlord-navigation-components",
+                task_file="tasks/landlord-navigation-components.md",
+                target_files=[
+                    "src/components/layout/landlord-bottom-nav.tsx",
+                    "src/components/layout/landlord-mobile-header.tsx",
+                ],
+                commit_message="feat(landlord): implement mobile header without logo and bottom navigation bar",
             ),
         ],
     ),
     3: WaveSpec(
         wave_number=3,
-        description="Renderizado en Servidor y Context Slicing en Paralelo",
+        description="Contratos de Datos, Componentes de Habitación, Propuestas y Semántica en Paralelo",
         tasks=[
             TaskSpec(
-                task_id="WEB-042",
+                task_id="WEB-059",
                 repo="web",
-                branch_name="feat/042-context-slicing",
-                task_file="tasks/042_context-slicing-navigation-and-filters.md",
+                branch_name="feat/059-price-histogram-service-hook",
+                task_file="tasks/price-histogram-service-hook.md",
                 target_files=[
-                    "src/contexts/navigation-context.tsx",
-                    "src/contexts/search-filters-context.tsx",
-                    "src/components/shells/student-app-shell.tsx",
+                    "src/lib/types.ts",
+                    "src/services/pensions.service.ts",
+                    "src/hooks/use-price-histogram.ts",
                 ],
-                commit_message="refactor(shell): slice state into navigation and filters contexts",
+                commit_message="feat(pensions): add price histogram and landlord client services with reactive hook",
             ),
             TaskSpec(
-                task_id="WEB-043",
+                task_id="WEB-050",
                 repo="web",
-                branch_name="feat/043-rsc-prefetch-seo",
-                task_file="tasks/043_rsc-initial-prefetch-and-seo.md",
+                branch_name="feat/050-landlord-room-atom-components",
+                task_file="tasks/landlord-room-atom-components.md",
                 target_files=[
-                    "src/app/page.tsx",
-                    "src/components/shells/role-router.tsx",
+                    "src/components/landlord/room-item-card.tsx",
+                    "src/components/landlord/room-editor-drawer.tsx",
                 ],
-                commit_message="perf(ssr): implement server component prefetch for initial feed",
+                commit_message="feat(landlord): implement room item card and mobile room editor drawer",
+            ),
+            TaskSpec(
+                task_id="WEB-051",
+                repo="web",
+                branch_name="feat/051-landlord-proposals-drawer",
+                task_file="tasks/landlord-proposals-drawer.md",
+                target_files=[
+                    "src/components/landlord/landlord-proposals-drawer.tsx",
+                ],
+                commit_message="feat(landlord): implement LandlordProposalsDrawer for community suggestions review",
+            ),
+            TaskSpec(
+                task_id="WEB-056",
+                repo="web",
+                branch_name="feat/056-seo-semantics-structured-data",
+                task_file="tasks/seo-semantics-and-structured-data.md",
+                target_files=[
+                    "src/components/pensions/pension-card.tsx",
+                    "src/components/explore/explore-screen.tsx",
+                    "src/components/shells/student-app-shell.tsx",
+                    "src/components/seo/json-ld.tsx",
+                ],
+                commit_message="refactor(seo): enforce semantic html, heading hierarchy, dynamic titles and json-ld schemas",
             ),
         ],
     ),
     4: WaveSpec(
         wave_number=4,
-        description="Rendimiento de Renderizado y Mapa en Paralelo",
+        description="Filtro Airbnb, Estado Global Propietario y Pantallas Móviles en Paralelo",
         tasks=[
             TaskSpec(
-                task_id="WEB-044",
+                task_id="WEB-061",
                 repo="web",
-                branch_name="feat/044-pension-card-memo",
-                task_file="tasks/044_pension-card-memo-and-virtual-list.md",
+                branch_name="feat/061-airbnb-filter-drawer",
+                task_file="tasks/airbnb-filter-drawer-redesign.md",
                 target_files=[
-                    "src/components/pensions/pension-card.tsx",
-                    "src/components/pensions/infinite-pension-list.tsx",
+                    "src/components/layout/filter-drawer.tsx",
                 ],
-                commit_message="perf(pensions): memoize PensionCard and optimize infinite list rendering",
+                commit_message="feat(filters): redesign filter drawer with airbnb-style scrollable layout and dynamic histogram",
             ),
             TaskSpec(
-                task_id="WEB-045",
+                task_id="WEB-052",
                 repo="web",
-                branch_name="feat/045-map-clustering",
-                task_file="tasks/045_map-marker-clustering-and-canvas.md",
+                branch_name="feat/052-landlord-context-state",
+                task_file="tasks/landlord-context-state.md",
                 target_files=[
-                    "src/components/map/map-screen.tsx",
+                    "src/contexts/landlord-context.tsx",
                 ],
-                commit_message="perf(map): implement zoom-aware marker rendering and clustering",
+                commit_message="feat(landlord): implement LandlordContext for property and tab state management",
+            ),
+            TaskSpec(
+                task_id="WEB-057",
+                repo="web",
+                branch_name="feat/057-landlord-rooms-screen",
+                task_file="tasks/landlord-rooms-screen.md",
+                target_files=[
+                    "src/components/landlord/landlord-rooms-screen.tsx",
+                ],
+                commit_message="feat(landlord): implement LandlordRoomsScreen with occupancy KPIs and drawer integration",
+            ),
+            TaskSpec(
+                task_id="WEB-062",
+                repo="web",
+                branch_name="feat/062-landlord-pension-and-reviews",
+                task_file="tasks/landlord-pension-and-reviews-screens.md",
+                target_files=[
+                    "src/components/landlord/landlord-pension-screen.tsx",
+                    "src/components/landlord/landlord-reviews-screen.tsx",
+                ],
+                commit_message="feat(landlord): implement mobile pension profile editor and reviews inspection screens",
             ),
         ],
     ),
     5: WaveSpec(
         wave_number=5,
-        description="Compuerta Centralizada Avanzada de Calidad Frontend y Backend",
+        description="Ensamblado Shell Móvil Propietario y Adaptación Responsiva Desktop",
         tasks=[
             TaskSpec(
-                task_id="WEB-046",
+                task_id="WEB-063",
                 repo="web",
-                branch_name="chore/046-advanced-quality-gate",
-                task_file="tasks/046_advanced-frontend-quality-gate.md",
-                target_files=[],
-                commit_message="chore(quality): advanced frontend and backend quality gate verification",
+                branch_name="feat/063-landlord-shell-desktop-adaptation",
+                task_file="tasks/landlord-shell-assembly-and-desktop-adaptation.md",
+                target_files=[
+                    "src/components/landlord/landlord-desktop-sidebar.tsx",
+                    "src/components/landlord/landlord-desktop-header.tsx",
+                    "src/components/shells/landlord-app-shell.tsx",
+                ],
+                commit_message="feat(landlord): assemble mobile shell and responsive desktop adaptation",
             ),
         ],
     ),
@@ -287,9 +361,15 @@ class WaveRunner:
             affected_repos: set[str] = set()
             for task in wave.tasks:
                 src_task = self.base_dir / task.repo / task.task_file
-                dest_task = self.base_dir / task.repo / "tasks" / "completed" / src_task.name
                 if src_task.exists():
-                    dest_task.parent.mkdir(parents=True, exist_ok=True)
+                    completed_dir = self.base_dir / task.repo / "tasks" / "completed"
+                    completed_dir.mkdir(parents=True, exist_ok=True)
+                    existing_numbers = []
+                    for f in completed_dir.iterdir():
+                        if f.is_file() and "_" in f.name and f.name[:3].isdigit():
+                            existing_numbers.append(int(f.name[:3]))
+                    next_idx = max(existing_numbers, default=0) + 1
+                    dest_task = completed_dir / f"{next_idx:03d}_{src_task.name}"
                     shutil.move(str(src_task), str(dest_task))
                     logs.append(f"  - Archivada {task.task_id} -> {dest_task.name}")
                     affected_repos.add(task.repo)
