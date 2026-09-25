@@ -75,8 +75,12 @@ The Orchestrator dispatches worker agents using the Antigravity CLI (`agy`) with
 
 All orchestration routines are driven from the repository root via `just`:
 
-- `just discover`: Dynamically discover pending task specifications and their active waves.
-- `just run-flow`: Execute the end-to-end canonical CrewAI Flow (`BuscaTunidoFlow`).
+- `just discover`: Dynamically discover pending task specifications and their active waves with DAG topological sorting.
+- `just run-flow`: Execute the end-to-end canonical CrewAI Flow (`BuscaTunidoFlow`) with concurrent worktree dispatch, blast radius inspection, self-healing, and automatic archiving.
+- `just heal [target]`: Run the centralized quality gate with automated self-healing repair loops.
+- `just new-task [repo] [slug] [title]`: Scaffold a new valid markdown task specification adhering to domain standards.
+- `just sync-submodules`: Synchronize and commit updated `web` and `api` submodule pointers in root monorepo.
+- `just archive [repo] [task]`: Archive a completed task specification into `tasks/completed/` with sequential 3-digit indexing.
 - `just plan [requirement]`: Run autonomous wave planning and worktree allocation via `BuscaTunidoCrew`.
 - `just verify [target]`: Run the centralized quality gate (`web`, `api`, or `both`) on-demand.
 - `just worktrees [repo]`: List active worktrees in `web` or `api`.

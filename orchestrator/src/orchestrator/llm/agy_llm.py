@@ -70,7 +70,7 @@ class AgyLLM(BaseLLM):
         return result.stdout.strip()
 
     def supports_function_calling(self) -> bool:
-        return True
+        return False
 
     def get_context_window_size(self) -> int:
         return 1048576

@@ -5,6 +5,9 @@ from typing import Type
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
+from orchestrator.tools.blast_radius_tools import check_worktree_blast_radius
+from orchestrator.utils.logger import save_worker_log
+
 class AgyWorkerInput(BaseModel):
     worktree_path: str = Field(description="Absolute or relative path to the worker's git worktree")
     task_instructions: str = Field(description="Specific technical instructions for the code to implement")
@@ -44,7 +47,7 @@ class AgyWorkerTool(BaseTool):
         cmd = [
             agy_bin,
             "--model",
-            "gemini-3.7-flash-high",
+            "gemini-3.8-flash-high",
             "--add-dir",
             str(resolved_path),
             "-p",
@@ -54,6 +57,7 @@ class AgyWorkerTool(BaseTool):
             "--dangerously-skip-permissions",
         ]
 
+        task_id = resolved_path.name
         try:
             res = subprocess.run(
                 cmd,
@@ -62,9 +66,33 @@ class AgyWorkerTool(BaseTool):
                 text=True,
                 timeout=600,
             )
+
+            log_file = save_worker_log(
+                task_id=task_id,
+                worktree_path=str(resolved_path),
+                prompt=lean_prompt,
+                stdout=res.stdout,
+                stderr=res.stderr,
+                returncode=res.returncode,
+            )
+
             if res.returncode != 0:
-                return f"Worker completed with error: {res.stderr.strip()}\nOutput: {res.stdout.strip()[:500]}"
-            return f"Worker completed successfully.\nOutput: {res.stdout.strip()[-300:]}"
+                return (
+                    f"Worker failed with exit code {res.returncode}.\n"
+                    f"Error: {res.stderr.strip() or res.stdout.strip()[:300]}\n"
+                    f"Full log: {log_file}"
+                )
+
+            passed, rogue_files, blast_report = check_worktree_blast_radius(resolved_path, target_files)
+            if not passed:
+                return (
+                    f"Worker completed with blast radius violation!\n"
+                    f"{blast_report}\n"
+                    f"Full log: {log_file}"
+                )
+
+            return f"Worker completed successfully and blast radius verified.\nFull log: {log_file}"
+
         except subprocess.TimeoutExpired:
             return "Error: Worker process timed out after 10 minutes."
         except FileNotFoundError:

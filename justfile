@@ -26,7 +26,7 @@ seed:
 
 test:
     pnpm -C api run test
-    pnpm -C web run test
+    pnpm -C web exec vitest run
 
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
@@ -42,3 +42,15 @@ plan requirement="":
 
 worktrees repo="web":
     uv run --project orchestrator python orchestrator/main.py worktrees --repo {{repo}}
+
+new-task repo="web" slug="" title="":
+    uv run --project orchestrator python orchestrator/main.py new-task --repo {{repo}} --slug {{slug}} --title "{{title}}"
+
+heal target="both" retries="2":
+    uv run --project orchestrator python orchestrator/main.py heal --target {{target}} --retries {{retries}}
+
+sync-submodules:
+    uv run --project orchestrator python orchestrator/main.py sync-submodules
+
+archive repo="web" task="":
+    uv run --project orchestrator python orchestrator/main.py archive --repo {{repo}} --task {{task}}
