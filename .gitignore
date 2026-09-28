@@ -28,4 +28,7 @@ trees/
 .DS_Store
 Thumbs.db
 
+# postman
+*.postman_collection.json
+
 future-tasks.md

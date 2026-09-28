@@ -12,6 +12,9 @@ build:
     pnpm -C api run build
     pnpm -C web run build
 
+postman:
+    pnpm -C api generate:postman
+
 web-dev:
     pnpm -C web dev
 
