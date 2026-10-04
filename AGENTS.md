@@ -107,3 +107,4 @@ CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap
 3. **Strict Typing**: Standard typing notations are mandatory in both TypeScript and Python. `any` is forbidden.
 4. **Conventional Commits**: Commit messages must be concise, single-line only (e.g., `feat(auth): add student domain validation`).
 5. **Brand Name**: Always format as `BuscaTuNido` (PascalCase, single word).
+6. **No Unrequested Hardcoded Data**: Hardcoded elements, dummy/mock data or synthetic fallbacks that were not explicitly requested by the user are strictly forbidden. Always connect to real APIs, database sources, or display clean empty states.
