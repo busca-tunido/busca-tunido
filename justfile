@@ -28,8 +28,9 @@ test target="both":
     @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run test }
     @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web exec vitest run }
 
-postman:
-    pnpm -C api generate:postman
+audit target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api audit }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web audit }
 
 web-dev:
     pnpm -C web dev
