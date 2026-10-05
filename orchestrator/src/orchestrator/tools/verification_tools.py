@@ -19,10 +19,17 @@ class RunQualityGateTool(BaseTool):
         if check_res.returncode != 0:
             logs.append(f"Biome autofix error:\n{check_res.stderr.strip() or check_res.stdout.strip()}")
 
-        typecheck_cmd = ["pnpm", "exec", "tsc", "--noEmit"] if is_web else ["pnpm", "run", "build"]
+        if not is_web:
+            diff_res = subprocess.run(["git", "diff", "--name-only", "HEAD"], cwd=str(repo_dir), capture_output=True, text=True, shell=True)
+            if "schema.prisma" in diff_res.stdout:
+                subprocess.run(["pnpm", "exec", "prisma", "generate"], cwd=str(repo_dir), capture_output=True, text=True, shell=True)
+            typecheck_cmd = ["pnpm", "exec", "tsc", "--noEmit", "-p", "tsconfig.build.json"]
+        else:
+            typecheck_cmd = ["pnpm", "exec", "tsc", "--noEmit"]
+
         tsc_res = subprocess.run(typecheck_cmd, cwd=str(repo_dir), capture_output=True, text=True, shell=True)
         if tsc_res.returncode != 0:
-            logs.append(f"Typecheck / Build error:\n{tsc_res.stderr.strip() or tsc_res.stdout.strip()}")
+            logs.append(f"Typecheck error:\n{tsc_res.stderr.strip() or tsc_res.stdout.strip()}")
 
         review_res = subprocess.run(["pnpm", "run", "review"], cwd=str(repo_dir), capture_output=True, text=True, shell=True)
         if review_res.returncode != 0:
