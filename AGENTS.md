@@ -59,7 +59,9 @@ CrewAI agents are augmented with domain expertise via `SKILL.md` packages:
 The Orchestrator runs all checks centrally on the merged integration branch in one pass:
 
 1. `pnpm run check`: Global Biome formatting and auto-fixing in milliseconds.
-2. `pnpm exec tsc --noEmit` / `nest build`: Static type verification.
+2. Static type verification (Decoupled Incremental Typecheck):
+   - `web`: `pnpm exec tsc --noEmit` (incremental with `.tsbuildinfo`).
+   - `api`: `pnpm exec tsc --noEmit -p tsconfig.build.json` (incremental with `.tsbuildinfo`, skipping redundant `prisma generate` unless `schema.prisma` changed).
 3. `pnpm run review`: Verification exit-code check.
 4. `pnpm vitest run`: Unit tests.
 
@@ -108,3 +110,4 @@ CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap
 4. **Conventional Commits**: Commit messages must be concise, single-line only (e.g., `feat(auth): add student domain validation`).
 5. **Brand Name**: Always format as `BuscaTuNido` (PascalCase, single word).
 6. **No Unrequested Hardcoded Data**: Hardcoded elements, dummy/mock data or synthetic fallbacks that were not explicitly requested by the user are strictly forbidden. Always connect to real APIs, database sources, or display clean empty states.
+7. **Ephemeral Verification & Incremental Caches**: Never run persistent background daemons (`--watch`) in agent or worker execution routines. All verification checks must be one-shot and terminate cleanly. Always preserve `.tsbuildinfo` incremental caches to guarantee sub-6s type verification.
