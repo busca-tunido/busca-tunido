@@ -70,15 +70,22 @@ just run-waves 1 5        # Run a range of waves sequentially
 
 ### Parallel Worktree Management (Worktrunk)
 
-Parallel agent workspaces are managed using [Worktrunk](https://worktrunk.dev) (`wt`):
+Parallel agent workspaces are isolated within the git-ignored `trees/` directory using [Worktrunk](https://worktrunk.dev) (`wt`) and configured via `orchestrator/config/wt.toml`:
 
 ```bash
-# Create worktree and branch for a worker
-wt -C web switch --create feat/task-name
+# Create worktree and branch for a worker inside trees/
+just wt-switch web feat/task-name
+# or directly:
+wt -C web --config orchestrator/config/wt.toml switch --create feat/task-name
 
 # List active worktrees and status
-wt -C web list
+just worktrees web
+# or directly:
+wt -C web --config orchestrator/config/wt.toml list
 
 # Remove worktree and delete branch after integration
-wt -C web remove feat/task-name -y -D
+just wt-remove web feat/task-name
+# or directly:
+wt -C web --config orchestrator/config/wt.toml remove --force feat/task-name -D
 ```
+

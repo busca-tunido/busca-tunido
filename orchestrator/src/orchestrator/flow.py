@@ -77,7 +77,7 @@ class BuscaTunidoFlow(Flow[BuscaTunidoFlowState]):
             for task in wave_tasks:
                 create_wt_tool.run(repo=task.repo, branch_name=task.branch_name)
                 safe_branch = task.branch_name.replace("/", "-")
-                wt_path = base_dir / f"{task.repo}.{safe_branch}"
+                wt_path = base_dir / "trees" / f"{task.repo}.{safe_branch}"
                 task_worktrees[task.task_id] = wt_path
 
             worker_futures = {}

@@ -1,5 +1,7 @@
 set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 
+export WORKTRUNK_CONFIG_PATH := justfile_directory() + "/orchestrator/config/wt.toml"
+
 default:
     @just --list
 
@@ -58,6 +60,15 @@ plan requirement="":
 
 worktrees repo="web":
     uv run --project orchestrator python orchestrator/main.py worktrees --repo {{repo}}
+
+wt-switch repo="web" branch="":
+    wt -C {{repo}} switch --create {{branch}}
+
+wt-remove repo="web" branch="":
+    wt -C {{repo}} remove --force {{branch}} -D
+
+wt-merge repo="web" branch="":
+    wt -C {{repo}} merge {{branch}}
 
 new-task repo="web" slug="" title="":
     uv run --project orchestrator python orchestrator/main.py new-task --repo {{repo}} --slug {{slug}} --title "{{title}}"

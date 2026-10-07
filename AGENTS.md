@@ -91,14 +91,20 @@ All orchestration routines are driven from the repository root via `just`:
 
 ## 3. Worktree Management with Worktrunk (`wt`)
 
-All parallel worktrees are managed using **Worktrunk** (`wt` CLI):
+All parallel worktrees are strictly isolated within the git-ignored `trees/` directory (`trees/<repo>.<branch-name>`) to keep the monorepo root and submodule directories clean.
 
-- **Create**: `wt -C <web|api> switch --create <branch-name>`
-- **Inspect**: `wt -C <web|api> list`
-- **Integrate / Merge**: `wt -C <web|api> merge <branch-name>`
-- **Teardown**: `wt -C <web|api> remove --force <branch-name> -D`
+Worktree layout configuration is centrally declared in `orchestrator/config/wt.toml`:
+```toml
+worktree-path = "{{ repo_path }}/../trees/{{ repo }}.{{ branch | sanitize }}"
+```
+This configuration is automatically injected via `export WORKTRUNK_CONFIG_PATH` in `justfile` and passed in CrewAI tools:
 
-CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation and cleanup.
+- **Create**: `just wt-switch <web|api> <branch-name>` (or `wt -C <web|api> --config orchestrator/config/wt.toml switch --create <branch-name>`)
+- **Inspect**: `just worktrees <web|api>` (or `wt -C <web|api> --config orchestrator/config/wt.toml list`)
+- **Integrate / Merge**: `just wt-merge <web|api> <branch-name>` (or `wt -C <web|api> merge <branch-name>`)
+- **Teardown**: `just wt-remove <web|api> <branch-name>` (or `wt -C <web|api> --config orchestrator/config/wt.toml remove --force <branch-name> -D`)
+
+CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation inside `trees/` and clean lifecycle teardown.
 
 ---
 
