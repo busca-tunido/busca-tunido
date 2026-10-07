@@ -33,7 +33,7 @@ busca-tunido/
 - **just**: Command runner
 - **Worktrunk (`wt`)**: Git worktree manager.
 - **Antigravity CLI (`agy`)**
-- **PostgreSQL CLI**
+- **MongoDB Atlas**
 
 ### Clone with Submodules
 
@@ -54,11 +54,10 @@ just install
 # Builds & Tests
 just build                # Compile both web (Next.js) and api (NestJS) production bundles
 just test                 # Run Vitest test suites across web and api
-just seed                 # Seed local database cluster
+just seed                 # Seed database on MongoDB Atlas
 
 # Development servers
 just web-dev              # Start Next.js frontend (Turbopack)
-just api-db               # Start local PostgreSQL cluster daemon
 just api-dev              # Start NestJS backend in watch mode
 
 # Multi-Agent Orchestrator

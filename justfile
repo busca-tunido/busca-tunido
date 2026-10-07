@@ -41,7 +41,7 @@ api-dev:
     pnpm -C api start:dev
 
 api-db:
-    pnpm -C api run db:start
+    pnpm -C api run db:view
 
 seed:
     pnpm -C api run db:seed
