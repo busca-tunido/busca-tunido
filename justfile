@@ -8,12 +8,29 @@ install:
     pnpm -C web install
     pnpm -C api install
 
-build:
-    pnpm -C api run build
-    pnpm -C web run build
+build target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run build }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run build }
 
-postman:
-    pnpm -C api generate:postman
+typecheck target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api exec tsc --noEmit -p tsconfig.build.json }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web exec tsc --noEmit }
+
+check target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run check }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run check }
+
+review target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run review }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run review }
+
+test target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run test }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web exec vitest run }
+
+audit target="both":
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api audit }
+    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web audit }
 
 web-dev:
     pnpm -C web dev
@@ -26,10 +43,6 @@ api-db:
 
 seed:
     pnpm -C api run db:seed
-
-test:
-    pnpm -C api run test
-    pnpm -C web exec vitest run
 
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
