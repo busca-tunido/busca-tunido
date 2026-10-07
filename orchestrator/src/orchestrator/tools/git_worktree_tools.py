@@ -43,7 +43,8 @@ class CreateWorktreeTool(BaseTool):
                 pass
 
         if not worktree_path:
-            worktree_path = str(base_dir / f"{repo}.{branch_name}")
+            safe_branch = branch_name.replace("/", "-")
+            worktree_path = str(base_dir / f"{repo}.{safe_branch}")
 
         return f"Successfully created worktree for branch '{branch_name}' at: {worktree_path}"
 
