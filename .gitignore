@@ -19,8 +19,9 @@ venv/
 *.db
 chroma/
 
-# Worktrees
+# Worktrees & Orchestrator
 trees/
+.orchestrator/
 
 # IDE & OS
 .vscode/

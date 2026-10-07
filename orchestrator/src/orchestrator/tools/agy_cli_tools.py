@@ -64,7 +64,7 @@ class AgyWorkerTool(BaseTool):
                 cwd=str(resolved_path),
                 capture_output=True,
                 text=True,
-                timeout=600,
+                timeout=1200,
             )
 
             log_file = save_worker_log(

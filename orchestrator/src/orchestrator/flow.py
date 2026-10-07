@@ -81,7 +81,7 @@ class BuscaTunidoFlow(Flow[BuscaTunidoFlowState]):
                 task_worktrees[task.task_id] = wt_path
 
             worker_futures = {}
-            with ThreadPoolExecutor(max_workers=max(1, len(wave_tasks))) as executor:
+            with ThreadPoolExecutor(max_workers=min(2, max(1, len(wave_tasks)))) as executor:
                 for task in wave_tasks:
                     wt_path = task_worktrees[task.task_id]
                     instructions = f"Implement task specification from {task.task_file}. Commit with: {task.commit_message}"
