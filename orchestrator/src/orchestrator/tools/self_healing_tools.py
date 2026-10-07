@@ -40,7 +40,7 @@ def run_healing_agent(target_dir: Path, error_report: str) -> tuple[int, str, st
         cwd=str(target_dir),
         capture_output=True,
         text=True,
-        timeout=600,
+        timeout=1200,
     )
 
     save_worker_log(
