@@ -15,7 +15,7 @@ from .tools.submodule_sync_tools import sync_monorepo_submodules
 from .tools.task_discovery_tools import DiscoverPendingTasksTool, DiscoveredTask, get_disjoint_waves
 
 def get_state_dir() -> Path:
-    base_dir = Path(__file__).resolve().parents[4]
+    base_dir = Path(__file__).resolve().parents[3]
     state_dir = base_dir / ".orchestrator" / "state"
     state_dir.mkdir(parents=True, exist_ok=True)
     return state_dir
@@ -59,7 +59,7 @@ class BuscaTunidoFlow(Flow[BuscaTunidoFlowState]):
 
         waves = get_disjoint_waves(repo="both")
         self.state.total_waves = len(waves)
-        base_dir = Path(__file__).resolve().parents[4]
+        base_dir = Path(__file__).resolve().parents[3]
 
         create_wt_tool = CreateWorktreeTool()
         merge_wt_tool = MergeWorktreeTool()
@@ -94,10 +94,27 @@ class BuscaTunidoFlow(Flow[BuscaTunidoFlowState]):
                     )
                     worker_futures[future] = task
 
-                for future in as_completed(worker_futures):
-                    task = worker_futures[future]
-                    worker_res = future.result()
-                    overall_logs.append(f"[{task.task_id}]: {worker_res}")
+            worker_results: dict[str, str] = {}
+            for future in as_completed(worker_futures):
+                task = worker_futures[future]
+                worker_res = future.result()
+                worker_results[task.task_id] = worker_res
+                overall_logs.append(f"[{task.task_id}]: {worker_res}")
+
+            wave_failed = False
+            for task in wave_tasks:
+                res_str = worker_results.get(task.task_id, "")
+                if res_str.startswith("Error:") or "Worker failed" in res_str:
+                    wave_failed = True
+                    overall_logs.append(f"[{task.task_id} EXECUTION FAILED]: {res_str}")
+
+            if wave_failed:
+                for task in wave_tasks:
+                    remove_wt_tool.run(repo=task.repo, branch_name=task.branch_name)
+                self.state.status = f"FAILED_AT_WAVE_{wave_num}"
+                self.state.execution_result = "\n".join(overall_logs)
+                persist_flow_state(self.state)
+                return self.state.execution_result
 
             for task in wave_tasks:
                 wt_path = task_worktrees[task.task_id]
@@ -110,6 +127,7 @@ class BuscaTunidoFlow(Flow[BuscaTunidoFlowState]):
                 overall_logs.append(f"[MERGE {task.task_id}]: {merge_res}")
                 remove_res = remove_wt_tool.run(repo=task.repo, branch_name=task.branch_name)
                 overall_logs.append(f"[CLEANUP {task.task_id}]: {remove_res}")
+
 
             repos_in_wave = {t.repo for t in wave_tasks}
             gate_target = "both" if len(repos_in_wave) > 1 else list(repos_in_wave)[0]
