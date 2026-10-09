@@ -32,4 +32,5 @@ Thumbs.db
 # postman
 *.postman_collection.json
 
+node_modules/
 future-tasks.md
