@@ -46,6 +46,11 @@ api-db:
 seed:
     pnpm -C api run db:seed
 
+openapi:
+    pnpm -C api run build
+    pnpm -C api run openapi:export
+    pnpm -C web run api:generate
+
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
 
