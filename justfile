@@ -47,6 +47,7 @@ seed:
     pnpm -C api run db:seed
 
 openapi:
+    pnpm -C api run build
     pnpm -C api run openapi:export
     pnpm -C web run api:generate
 
