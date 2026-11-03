@@ -49,7 +49,8 @@ seed:
 openapi:
     pnpm -C api run build
     pnpm -C api run openapi:export
-    pnpm -C web run api:generate
+    pnpm -C web exec openapi-typescript src/lib/openapi.json -o src/lib/api-schema.d.ts --immutable --default-non-nullable
+    pnpm -C web exec biome format --write src/lib/api-schema.d.ts src/lib/openapi.json
 
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
