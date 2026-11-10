@@ -79,13 +79,10 @@ All orchestration routines are driven from the repository root via `just`:
 
 - `just discover`: Dynamically discover pending task specifications and their active waves with DAG topological sorting.
 - `just run-flow`: Execute the end-to-end canonical CrewAI Flow (`BuscaTunidoFlow`) with concurrent worktree dispatch, blast radius inspection, self-healing, and automatic archiving.
-- `just heal [target]`: Run the centralized quality gate with automated self-healing repair loops.
 - `just new-task [repo] [slug] [title]`: Scaffold a new valid markdown task specification adhering to domain standards.
-- `just sync-submodules`: Synchronize and commit updated `web` and `api` submodule pointers in root monorepo.
 - `just archive [repo] [task]`: Archive a completed task specification into `tasks/completed/` with sequential 3-digit indexing.
 - `just plan [requirement]`: Run autonomous wave planning and worktree allocation via `BuscaTunidoCrew`.
 - `just verify [target]`: Run the centralized quality gate (`web`, `api`, or `both`) on-demand.
-- `just worktrees [repo]`: List active worktrees in `web` or `api`.
 
 ---
 
@@ -99,10 +96,10 @@ worktree-path = "{{ repo_path }}/../trees/{{ repo }}.{{ branch | sanitize }}"
 ```
 This configuration is automatically injected via `export WORKTRUNK_CONFIG_PATH` in `justfile` and passed in CrewAI tools:
 
-- **Create**: `just wt-switch <web|api> <branch-name>` (or `wt -C <web|api> --config orchestrator/config/wt.toml switch --create <branch-name>`)
-- **Inspect**: `just worktrees <web|api>` (or `wt -C <web|api> --config orchestrator/config/wt.toml list`)
-- **Integrate / Merge**: `just wt-merge <web|api> <branch-name>` (or `wt -C <web|api> merge <branch-name>`)
-- **Teardown**: `just wt-remove <web|api> <branch-name>` (or `wt -C <web|api> --config orchestrator/config/wt.toml remove --force <branch-name> -D`)
+- **Create**: `wt -C <web|api> switch --create <branch-name>`
+- **Inspect**: `wt -C <web|api> list`
+- **Integrate / Merge**: `wt -C <web|api> merge <branch-name>`
+- **Teardown**: `wt -C <web|api> remove --force <branch-name> -D`
 
 CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation inside `trees/` and clean lifecycle teardown.
 

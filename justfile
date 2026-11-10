@@ -10,41 +10,17 @@ install:
     pnpm -C web install
     pnpm -C api install
 
-build target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run build }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run build }
-
 typecheck target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api exec tsc --noEmit -p tsconfig.build.json }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web exec tsc --noEmit }
+    @if ("{{target}}" -in @("both", "api")) { pnpm -C api exec tsc --noEmit -p tsconfig.build.json }
+    @if ("{{target}}" -in @("both", "web")) { pnpm -C web exec tsc --noEmit }
 
 check target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run check }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run check }
-
-review target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run review }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web run review }
+    @if ("{{target}}" -in @("both", "api")) { pnpm -C api run check }
+    @if ("{{target}}" -in @("both", "web")) { pnpm -C web run check }
 
 test target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api run test }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web exec vitest run }
-
-audit target="both":
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "api") { pnpm -C api audit }
-    @if ("{{target}}" -eq "both" -or "{{target}}" -eq "web") { pnpm -C web audit }
-
-web-dev:
-    pnpm -C web dev
-
-api-dev:
-    pnpm -C api start:dev
-
-api-db:
-    pnpm -C api run db:view
-
-seed:
-    pnpm -C api run db:seed
+    @if ("{{target}}" -in @("both", "api")) { pnpm -C api run test }
+    @if ("{{target}}" -in @("both", "web")) { pnpm -C web exec vitest run }
 
 openapi:
     pnpm -C api run build
@@ -52,38 +28,29 @@ openapi:
     pnpm -C web exec openapi-typescript src/lib/openapi.json -o src/lib/api-schema.d.ts --immutable --default-non-nullable
     pnpm -C web exec biome format --write src/lib/api-schema.d.ts src/lib/openapi.json
 
+dev-web:
+    pnpm -C web dev
+
+dev-api:
+    pnpm -C api start:dev
+
+seed:
+    pnpm -C api run db:seed
+
 verify target="both":
     uv run --project orchestrator python orchestrator/main.py verify --target {{target}}
-
-discover repo="both":
-    uv run --project orchestrator python orchestrator/main.py discover --repo {{repo}}
 
 run-flow:
     uv run --project orchestrator python orchestrator/main.py run-flow
 
+discover repo="both":
+    uv run --project orchestrator python orchestrator/main.py discover --repo {{repo}}
+
 plan requirement="":
     uv run --project orchestrator python orchestrator/main.py plan {{ if requirement != "" { "-r \"" + requirement + "\"" } else { "" } }}
 
-worktrees repo="web":
-    uv run --project orchestrator python orchestrator/main.py worktrees --repo {{repo}}
-
-wt-switch repo="web" branch="":
-    wt -C {{repo}} switch --create {{branch}}
-
-wt-remove repo="web" branch="":
-    wt -C {{repo}} remove --force {{branch}} -D
-
-wt-merge repo="web" branch="":
-    wt -C {{repo}} merge {{branch}}
-
 new-task repo="web" slug="" title="":
     uv run --project orchestrator python orchestrator/main.py new-task --repo {{repo}} --slug {{slug}} --title "{{title}}"
-
-heal target="both" retries="2":
-    uv run --project orchestrator python orchestrator/main.py heal --target {{target}} --retries {{retries}}
-
-sync-submodules:
-    uv run --project orchestrator python orchestrator/main.py sync-submodules
 
 archive repo="web" task="":
     uv run --project orchestrator python orchestrator/main.py archive --repo {{repo}} --task {{task}}
