@@ -1,107 +1,75 @@
 # Context & Architectural Guidelines for AI Coding Assistants (BuscaTuNido Monorepo)
 
-This document establishes the multi-agent orchestration architecture, token-efficiency rules, and development guidelines for **BuscaTuNido**.
+This document establishes high-level monorepo conventions, shared development constraints, and the opt-in multi-agent task orchestration methodology for **BuscaTuNido**.
 
 ---
 
 ## 1. Monorepo Structure & Submodules
 
-The project is structured as a top-level repository managing two Git submodules and an AI orchestration engine:
+The workspace manages two Git submodules alongside a shared task runner and a multi-agent orchestration engine:
 
-```
+```text
 busca-tunido/
-├── .gitmodules                           # Git submodule configuration
-├── web/                                  # Next.js frontend (submodule)
-├── api/                                  # NestJS backend (submodule)
-├── orchestrator/                         # Canonical CrewAI multi-agent orchestrator (Python + uv)
-│   ├── config/                           # Declarative CrewAI agents and tasks YAML
-│   ├── skills/                           # Canonical filesystem-based Skill packages (SKILL.md)
-│   └── src/orchestrator/
-│       ├── llm/                          # Custom AgyLLM adapter (gemini-3.8-flash-high)
-│       ├── flow.py                       # BuscaTunidoFlow (CrewAI Flow with @start and @listen)
-│       ├── crew.py                       # BuscaTunidoCrew (@CrewBase, @agent, @task)
-│       └── tools/                        # Worktree, agy, discovery, and verification tools
-├── justfile                              # Root task runner (just)
-├── README.md                             # Minimal project overview
-└── AGENTS.md                             # Monorepo agent rules and guidelines
+├── .gitmodules        # Git submodule configuration
+├── web/               # Next.js frontend (submodule)
+├── api/               # NestJS + Prisma backend (submodule)
+├── orchestrator/      # CrewAI multi-agent orchestrator (Python + uv)
+├── justfile           # Root task runner (just)
+├── README.md          # Project overview
+└── AGENTS.md          # Monorepo agent rules and guidelines
 ```
 
 ---
 
-## 2. Canonical CrewAI Architecture with Skills, Flows & AgyLLM
+## 2. Opt-In Task-Driven Methodology & Orchestrator (`tasks/[task-name].md`)
 
-The orchestration engine follows the official, modern **CrewAI (`v1.15.22`)** architectural pattern:
+> [!IMPORTANT]
+> **Explicit-Request-Only Clause (Opt-In Methodology)**:
+> The task-driven (`tasks/[task-name].md`) DAG wave planning and multi-agent orchestrator workflow described in this section **MUST ONLY be used when explicitly requested by the user**.
+> For standard development requests, bug fixes, or feature work without an explicit request for `tasks/` orchestration, work directly in the target repository (`api` or `web`) following standard feature-branching and quality-gate rules—do **not** create `tasks/*.md` files or spin up parallel worktree waves automatically.
 
-### Three-Tier Architectural Specification
+### Task-Driven Lifecycle (`web/tasks/` & `api/tasks/`):
 
-| Tier | Component | Implementation Pattern | Responsibilities & Invariants |
-| :--- | :--- | :--- | :--- |
-| **Tier 1: Flow Orchestration** | `BuscaTunidoFlow` | `crewai.flow.flow.Flow` | - `@start discover_specs`: Dynamically scans pending task specs in `web/tasks` and `api/tasks`<br>- `@listen(discover_specs) run_crew_pipeline`: Dispatches `BuscaTunidoCrew` across disjoint DAG waves<br>- `@listen(run_crew_pipeline) verify_quality_gate`: Triggers centralized quality gate checks |
-| **Tier 2: Declarative Multi-Agent Crew** | `BuscaTunidoCrew` | `@CrewBase` | - Agent Definitions: `config/agents.yaml`<br>- Task Specifications: `config/tasks.yaml`<br>- Specialized Skills: `skills/worktree-orchestration`, `skills/token-efficient-coding`, `skills/centralized-quality-gate` |
-| **Tier 3: Execution Runtime & LLM Adapter** | `AgyLLM` | `crewai.BaseLLM` subclass | - Model: `gemini-3.8-flash-high`<br>- Runtime: Antigravity CLI (`agy`) subagent execution<br>- Dependencies: Zero third-party API keys required |
+1. **Task Breakdown by Purpose & Topology**:
+   - Decompose user requirements into structured `tasks/[task-name].md` files inside the corresponding submodule (`web/tasks/` or `api/tasks/`), omitting any numeric index prefix while active.
+   - Assign each task an `Execution Profile` (Wave, Mode, Role, Dependencies, Collision Risk) and explicit `## Target Files`.
+2. **Review & Clarification Gate**:
+   - Present the generated DAG and execution waves to the user for review and approval before executing waves.
+3. **Parallel Decomposition & Disjoint File Sets Rule**:
+   - Tasks with disjoint target files ($Files(Task\_A) \cap Files(Task\_B) = \emptyset$) can run in `PARALLEL` within the same wave.
+   - Tasks touching overlapping files or shared integration hubs (schemas, root modules, global layouts/providers, lockfiles) must be sequenced across waves or deferred to the integration gate.
 
-### CrewAI Skills in the Filesystem:
+> [!IMPORTANT]
+> **Task Naming & Archiving Convention**:
+> - **Active tasks MUST NOT use numeric prefixes**: Name active tasks in `tasks/` using descriptive kebab-case without numbers (e.g., `tasks/some-feature.md`).
+> - **Sequential numbering is strictly reserved for `tasks/completed/`**: A three-digit sequential index (`001_`, `002_`, etc.) is assigned **only** when a task is completed, verified, merged, and archived into `tasks/completed/`.
 
-CrewAI agents are augmented with domain expertise via `SKILL.md` packages:
+### Standard `[task-name].md` Structure:
 
-1. `skills/worktree-orchestration/SKILL.md`: Guides `lead_orchestrator` on DAG wave planning, file set disjointness ($Files(A) \cap Files(B) = \emptyset$), and worktree isolation with `wt`.
-2. `skills/token-efficient-coding/SKILL.md`: Guides `code_worker` on token efficiency: strictly no heavy build/check tools, standard strict typing, no code comments, and targeted commits.
-3. `skills/centralized-quality-gate/SKILL.md`: Guides `quality_integrator` on merging branches and running centralized quality verification in a single pass.
+- `# Task: [Descriptive Title]`
+- `## Execution Profile`: Wave/Batch, Execution Mode (`PARALLEL` | `SEQUENTIAL`), Assigned Role (`Worker Agent` | `Integrator Agent`), Dependencies (`depends_on`), Collision Risk.
+- `## Target Files`: `Exclusive` and `Shared / Integration Points`.
+- `## Objective`, `## Technical Specifications`, `## Checklist`, and `## Verification`.
 
-### Critical Worker Rules:
+### Agent Roles & Quality Gate (When Orchestrated):
 
-1. **No Slow Commands**: Workers MUST NOT execute `pnpm build`, `tsc`, `nest build`, `biome check`, or `git stash`. These commands pollute the context window with thousands of terminal tokens.
-2. **Pure Implementation**: Workers focus exclusively on writing strictly-typed code for their designated files.
-3. **Targeted Staging**: Workers only run `git add <file1> <file2>`, followed by a single-line conventional commit.
-
-### Orchestrator / Integrator Quality Gate:
-
-The Orchestrator runs all checks centrally on the merged integration branch in one pass:
-
-1. `pnpm run check`: Global Biome formatting and auto-fixing in milliseconds.
-2. Static type verification (Decoupled Incremental Typecheck):
-   - `web`: `pnpm exec tsc --noEmit` (incremental with `.tsbuildinfo`).
-   - `api`: `pnpm exec tsc --noEmit -p tsconfig.build.json` (incremental with `.tsbuildinfo`, skipping redundant `prisma generate` unless `schema.prisma` changed).
-3. `pnpm run review`: Verification exit-code check.
-4. `pnpm vitest run`: Unit tests.
-
-### Worker Dispatch Specification (`agy` CLI):
-
-The Orchestrator dispatches worker agents using the Antigravity CLI (`agy`) with strict invocation parameters:
-
-1. **Workspace Root Anchoring**: Must pass `--add-dir <worktree_path>` so that file creation and edits target the isolated worktree directory instead of default global scratch paths.
-2. **Reliable Model Selection**: Explicitly invoke `--model gemini-3.8-flash-high` for rapid response times and consistent availability.
-3. **Execution Flags**: Use `-p <prompt> --mode accept-edits --dangerously-skip-permissions`.
-
-### Orchestrator Pipeline Commands (`just`):
-
-All orchestration routines are driven from the repository root via `just`:
-
-- `just discover`: Dynamically discover pending task specifications and their active waves with DAG topological sorting.
-- `just run-flow`: Execute the end-to-end canonical CrewAI Flow (`BuscaTunidoFlow`) with concurrent worktree dispatch, blast radius inspection, self-healing, and automatic archiving.
-- `just new-task [repo] [slug] [title]`: Scaffold a new valid markdown task specification adhering to domain standards.
-- `just archive [repo] [task]`: Archive a completed task specification into `tasks/completed/` with sequential 3-digit indexing.
-- `just plan [requirement]`: Run autonomous wave planning and worktree allocation via `BuscaTunidoCrew`.
-- `just verify [target]`: Run the centralized quality gate (`web`, `api`, or `both`) on-demand.
+- **Worker Agent**: Operates in an isolated branch/worktree under `trees/`, modifies only its assigned exclusive files, skips heavy local build/check commands to stay token-efficient, and creates a single-line conventional commit.
+- **Integrator Agent**: Operates on the integration branch, merges worker branches, reconciles shared hubs, runs the centralized quality gate (Biome check/review, incremental TypeScript check, Vitest), archives completed task files, and cleans up temporary worktrees.
 
 ---
 
-## 3. Worktree Management with Worktrunk (`wt`)
+## 3. Orchestrator & Worktree Tooling (`orchestrator/` & `just`)
 
-All parallel worktrees are strictly isolated within the git-ignored `trees/` directory (`trees/<repo>.<branch-name>`) to keep the monorepo root and submodule directories clean.
+When the opt-in orchestration workflow is requested:
 
-Worktree layout configuration is centrally declared in `orchestrator/config/wt.toml`:
-```toml
-worktree-path = "{{ repo_path }}/../trees/{{ repo }}.{{ branch | sanitize }}"
-```
-This configuration is automatically injected via `export WORKTRUNK_CONFIG_PATH` in `justfile` and passed in CrewAI tools:
-
-- **Create**: `wt -C <web|api> switch --create <branch-name>`
-- **Inspect**: `wt -C <web|api> list`
-- **Integrate / Merge**: `wt -C <web|api> merge <branch-name>`
-- **Teardown**: `wt -C <web|api> remove --force <branch-name> -D`
-
-CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap `wt` directly to guarantee deterministic worktree isolation inside `trees/` and clean lifecycle teardown.
+- **Orchestrator Engine**: `orchestrator/` implements a CrewAI Flow + Crew + Skills architecture backed by the Antigravity CLI (`agy`) and Worktrunk (`wt`).
+- **Worktree Isolation**: Parallel worktrees are isolated inside the git-ignored `trees/` directory using `orchestrator/config/wt.toml`.
+- **Root Commands (`just`)**:
+  - `just install`: Initialize submodules and install dependencies in `web` and `api`.
+  - `just check [target]`, `just typecheck [target]`, `just test [target]`: Run Biome, TypeScript, and Vitest across `web`, `api`, or `both`.
+  - `just openapi`: Build `api`, export OpenAPI schema, and regenerate `web` client types.
+  - `just seed`: Seed the database via `api`.
+  - `just discover`, `just plan`, `just run-flow`, `just verify`, `just new-task`, `just archive`: Drive the `orchestrator/` CLI when executing the opt-in task workflow.
 
 ---
 
@@ -109,10 +77,10 @@ CrewAI tools in `orchestrator/src/orchestrator/tools/git_worktree_tools.py` wrap
 
 1. **No Code Comments**: Do not write comments inside code unless explicitly requested by the user. Use descriptive naming and explicit types instead.
 2. **No Direct Config Edits**: Never modify `package.json`, `pnpm-lock.yaml`, or `pyproject.toml` manually to add dependencies. Use `pnpm add <pkg>` or `uv add <pkg>`.
-3. **Strict Typing**: Standard typing notations are mandatory in both TypeScript and Python. `any` is forbidden.
+3. **Strict Typing**: Standard typing notations are mandatory in both TypeScript and Python. `interface` and `any` are forbidden in TypeScript (`type` aliases only).
 4. **Conventional Commits**: Commit messages must be concise, single-line only (e.g., `feat(auth): add student domain validation`).
-5. **Feature Branching & Integration to Main**: Every significant change, feature, or non-trivial bug fix must be grouped and developed within a dedicated branch (e.g., `feat/<name>`, `fix/<name>`), thoroughly tested, and integrated (merged) into `main` upon completion.
+5. **Feature Branching & Integration to Main**: Every significant change, feature, or non-trivial bug fix must be developed within a dedicated branch (e.g., `feat/<name>`, `fix/<name>`), thoroughly tested, and merged cleanly into `main` upon completion.
 6. **Brand Name**: Always format as `BuscaTuNido` (PascalCase, single word).
-7. **Strict Prohibition of Hardcoded Values & Seed-First Rule**: Hardcoded values, dummy/mock data, synthetic fallbacks, or arbitrary magic numbers/strings are strictly forbidden across both `api` and `web` unless explicitly requested by the user. If initial, sample, or test data is required, it must be created in the corresponding seed file (e.g., `api/prisma/seed.ts`, `seed-utils.ts`) or dedicated fixture file. Always connect to real APIs, database sources, or display clean empty states.
-8. **Ephemeral Verification & Incremental Caches**: Never run persistent background daemons (`--watch`) in agent or worker execution routines. All verification checks must be one-shot and terminate cleanly. Always preserve `.tsbuildinfo` incremental caches to guarantee sub-6s type verification.
-9. **100% OpenAPI Parity & Backend-First Contract Rule**: The backend API must maintain 100% OpenAPI documentation completeness across all endpoints and DTOs. The frontend must exclusively consume types generated from OpenAPI via `just openapi`; manual reimplementation of backend types and synthetic fallbacks are strictly prohibited. Any new field or functionality must first be implemented in the backend before being consumed in the frontend.
+7. **Strict Prohibition of Hardcoded Values & Seed-First Rule**: Hardcoded values, dummy/mock data, synthetic fallbacks, or arbitrary magic numbers/strings are strictly prohibited across both `api` and `web` unless explicitly requested by the user. Initial, sample, or test data must live in `api/scripts/seeds/` or dedicated test fixtures. Always connect to real APIs, database sources, or display clean empty states.
+8. **Ephemeral Verification & Incremental Caches**: Never run persistent background daemons (`--watch`) in agent verification routines. All verification checks must be one-shot and terminate cleanly. Preserve `.tsbuildinfo` incremental caches.
+9. **100% OpenAPI Parity & Backend-First Contract Rule**: The backend API must maintain 100% OpenAPI documentation completeness across all endpoints and DTOs. The frontend must exclusively consume types generated from OpenAPI via `just openapi`; manual reimplementation of backend types and synthetic fallbacks are strictly prohibited. Any new field or capability must first be implemented in the backend before being consumed in the frontend.
